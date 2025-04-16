@@ -10,27 +10,31 @@ function Footer() {
       <img src={logo} alt="" />
       <div className="links">
         <a
-          href="https:/facebook.com"
+          href="https://facebook.com"
           target="_blank"
           aria-label="to facebook page"
         >
           <img src={facebook} alt="facebook logo" />
         </a>
         <a
-          href="https:/instagram.com"
+          href="https://instagram.com"
           target="_blank"
           aria-label="to instagram page"
         >
           <img src={instagram} alt="instagram logo" />
         </a>
         <a
-          href="https:/youtube.com"
+          href="https://youtube.com"
           target="_blank"
           aria-label="to youtube page"
         >
           <img src={youtube} alt="youtube logo" />
         </a>
-        <a href="https:/github.com" target="_blank" aria-label="to github page">
+        <a
+          href="https://github.com"
+          target="_blank"
+          aria-label="to github page"
+        >
           <img src={github} alt="github logo" />
         </a>
       </div>
