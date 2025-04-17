@@ -847,10 +847,10 @@ function Sankey(props) {
     for (let i = 0; i < nodes.length; i++) {
       const origin = percentages.filter(
         (node) => node.name === nodes[i].origin
-      )[0];
+      )[0] || { name: nodes[i].origin, percentage: "0" };
       const destination = percentages.filter(
         (node) => node.name === nodes[i].destination
-      )[0];
+      )[0] || { name: nodes[i].destination, percentage: "0" };
       const originTotal = totals.filter(
         (node) => node.name === nodes[i].origin
       )[0].total;
