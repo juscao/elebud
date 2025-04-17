@@ -60,6 +60,7 @@ function Sankey(props) {
   const [width, setWidth] = useState(0);
   const [chartWidth, setChartWidth] = useState(0);
   const [levels, setLevels] = useState(0);
+  const [deletingNode, setDeletingNode] = useState(false);
 
   const ref = useRef(null);
   const clickAwayRef = useClickAway(() => {
@@ -334,6 +335,7 @@ function Sankey(props) {
   }
 
   async function deleteSankeyNode(id) {
+    setDeletingNode(true);
     try {
       const response = await fetch(
         `/api/v1/projects/${props.project.id}/chart/sankey/nodes/${id}`,
@@ -346,13 +348,17 @@ function Sankey(props) {
         }
       );
       const data = await response.json();
-      setNodes(data.allNodes);
-      updateData(data.allNodes);
-      updateDataWithDollarLabels(data.allNodes);
-      updateDataWithPercentageLabels(data.allNodes);
-      updateEditVariables(data.allNodes);
+      if (data) {
+        setNodes(data.allNodes);
+        updateData(data.allNodes);
+        updateDataWithDollarLabels(data.allNodes);
+        updateDataWithPercentageLabels(data.allNodes);
+        updateEditVariables(data.allNodes);
+      }
     } catch (error) {
       console.log(error);
+    } finally {
+      setDeletingNode(false);
     }
   }
 
@@ -1414,7 +1420,10 @@ function Sankey(props) {
                               )}
                               {editingNode !== node.id && (
                                 <button
-                                  onClick={() => deleteSankeyNode(node.id)}
+                                  onClick={() => {
+                                    if (!deletingNode)
+                                      deleteSankeyNode(node.id);
+                                  }}
                                   type="button"
                                 >
                                   <img src={remove} alt="delete node" />
