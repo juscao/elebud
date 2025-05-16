@@ -362,41 +362,61 @@ function Sankey(props) {
     }
   }
 
-  function getSankeyLevels(nodes, main) {
-    const graph = new Map();
-    const reverseGraph = new Map();
-
+  function getSankeyLevels(nodes) {
+    const allNodes = new Set();
     nodes.forEach(({ origin, destination }) => {
-      if (!graph.has(origin)) graph.set(origin, []);
-      if (!reverseGraph.has(destination)) reverseGraph.set(destination, []);
-
-      graph.get(origin).push(destination);
-      reverseGraph.get(destination).push(origin);
+      allNodes.add(origin);
+      allNodes.add(destination);
     });
 
-    function findDepth(node, graphMap, visited) {
-      if (!graphMap.has(node)) return 0;
+    const graph = {};
+    allNodes.forEach((node) => {
+      graph[node] = {
+        incoming: [],
+        outgoing: [],
+        level: 0,
+      };
+    });
 
-      let maxDepth = 0;
-      for (const neighbor of graphMap.get(node)) {
-        if (!visited.has(neighbor)) {
-          visited.add(neighbor);
-          maxDepth = Math.max(
-            maxDepth,
-            1 + findDepth(neighbor, graphMap, visited)
-          );
-          visited.delete(neighbor);
-        }
+    nodes.forEach(({ origin, destination }) => {
+      graph[origin].outgoing.push(destination);
+      graph[destination].incoming.push(origin);
+    });
+
+    const sourceNodes = [];
+    allNodes.forEach((node) => {
+      if (graph[node].incoming.length === 0) {
+        sourceNodes.push(node);
+        graph[node].level = 0;
       }
-      return maxDepth;
+    });
+
+    if (sourceNodes.length === 0) {
+      allNodes.forEach((node) => {
+        sourceNodes.push(node);
+        graph[node].level = 0;
+      });
     }
 
-    const leftDepth = findDepth(main, reverseGraph, new Set([main]));
+    const queue = [...sourceNodes];
+    while (queue.length > 0) {
+      const current = queue.shift();
+      const currentLevel = graph[current].level;
+      graph[current].outgoing.forEach((next) => {
+        const proposedLevel = currentLevel + 1;
+        if (proposedLevel > graph[next].level) {
+          graph[next].level = proposedLevel;
+          queue.push(next);
+        }
+      });
+    }
 
-    const rightDepth = findDepth(main, graph, new Set([main]));
+    let maxLevel = 0;
+    allNodes.forEach((node) => {
+      maxLevel = Math.max(maxLevel, graph[node].level);
+    });
 
-    setLevels(leftDepth + rightDepth);
-    return leftDepth + rightDepth;
+    return setLevels(maxLevel);
   }
 
   function updateData(nodes) {
