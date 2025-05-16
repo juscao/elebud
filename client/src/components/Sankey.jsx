@@ -59,8 +59,9 @@ function Sankey(props) {
   const [height, setHeight] = useState(0);
   const [width, setWidth] = useState(0);
   const [chartWidth, setChartWidth] = useState(0);
-  const [levels, setLevels] = useState(0);
+  const [levels, setLevels] = useState(-1);
   const [deletingNode, setDeletingNode] = useState(false);
+  const [options, setOptions] = useState();
 
   const ref = useRef(null);
   const clickAwayRef = useClickAway(() => {
@@ -83,6 +84,34 @@ function Sankey(props) {
       resizeObserver.disconnect();
     };
   }, [ref.current]);
+
+  useEffect(() => {
+    setOptions({
+      tooltip: { isHtml: true },
+      height: 50 * data.length,
+      width: chartWidth < 400 * levels ? 400 * levels : "auto",
+      sankey: {
+        node: {
+          colors,
+          label: {
+            fontName: "Inter",
+            fontSize,
+            color: newColors.font ? newColors.font : "#000000",
+            bold: true,
+          },
+          interactivity: true,
+          labelPadding: 16,
+          nodePadding: 32,
+          width: 8,
+        },
+        link: {
+          color: {
+            fill: newColors.links ? newColors.links : "#FFDDE1",
+          },
+        },
+      },
+    });
+  }, [levels, chartWidth]);
 
   useEffect(() => {
     document.title = `${props.project.title} | Elebud`;
@@ -199,6 +228,7 @@ function Sankey(props) {
           updateDataWithDollarLabels(data.nodes);
           updateDataWithPercentageLabels(data.nodes);
           updateEditVariables(data.nodes);
+          getSankeyLevels(data.nodes);
         }
       }
       setUpdating(false);
@@ -860,7 +890,6 @@ function Sankey(props) {
     const highest = totals.reduce((max, current) =>
       current.total > max.total ? current : max
     );
-    getSankeyLevels(nodes, highest.name);
     if (!percentages.filter((node) => node.name === highest.name)[0]) {
       percentages.push({ name: highest.name, percentage: "100" });
     }
@@ -912,32 +941,6 @@ function Sankey(props) {
     setEditedNode(arr);
     setOriginalNode(arr);
   }
-
-  const options = {
-    tooltip: { isHtml: true },
-    height: 50 * data.length,
-    width: chartWidth < 400 * levels ? 400 * levels : "auto",
-    sankey: {
-      node: {
-        colors,
-        label: {
-          fontName: "Inter",
-          fontSize,
-          color: newColors.font ? newColors.font : "#000000",
-          bold: true,
-        },
-        interactivity: true,
-        labelPadding: 16,
-        nodePadding: 32,
-        width: 8,
-      },
-      link: {
-        color: {
-          fill: newColors.links ? newColors.links : "#FFDDE1",
-        },
-      },
-    },
-  };
 
   function generateRandomHexColor() {
     return (
@@ -2285,11 +2288,12 @@ function Sankey(props) {
               </button>
             </div>
           )}
-          {!updating && (
+          {!updating && options && (
             <div
               id="chart"
               style={{ backgroundColor: newColors.background }}
               ref={ref}
+              onClick={() => console.log(options.width, chartWidth)}
             >
               <div className="title" style={{ color: newColors.font }}>
                 {props.project.title}
